@@ -1,4 +1,4 @@
-package com.akame.commonsdk
+package com.akame.mylibrary
 
 import android.content.Context
 import android.widget.Toast
