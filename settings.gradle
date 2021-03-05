@@ -1,3 +1,3 @@
-include ':mylibrary'
+include ':developkit'
 include ':app'
 rootProject.name = "CommonSDK"

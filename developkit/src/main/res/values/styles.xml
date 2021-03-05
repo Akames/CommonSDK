@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MyDialog" parent="android:style/Theme.Dialog">
+        <!--背景颜色及和透明程度-->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!--是否去除标题 -->
+        <item name="android:windowNoTitle">true</item>
+        <!--是否去除边框-->
+        <item name="android:windowFrame">@null</item>
+        <!--是否浮现在activity之上-->
+        <item name="android:windowIsFloating">true</item>
+        <!--是否模糊-->
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+
+    <style name="dialog_style" parent="Theme.AppCompat.DayNight.Dialog">
+        <!--        <item name="android:windowEnterAnimation">@anim/enter_anim</item>-->
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="dialog_anim" >
+<!--        <item name="android:windowEnterAnimation">@anim/enter_anim</item>-->
+<!--        <item name="android:windowExitAnimation">@anim/out_anim</item>-->
+
+<!--        <item name="android:activityOpenEnterAnimation">@anim/enter_anim</item>-->
+<!--        <item name="android:activityOpenExitAnimation">@null</item>-->
+<!--        <item name="android:activityCloseEnterAnimation">@null</item>-->
+<!--        <item name="android:activityCloseExitAnimation">@anim/out_anim</item>-->
+
+    </style>
+
+    <style name="TransparentBottomSheetStyle" parent="Theme.Design.BottomSheetDialog">
+        <item name="android:background">@android:color/transparent</item>
+        <!--<item name="behavior_peekHeight">auto</item>
+        <item name="behavior_hideable">true</item>
+        <item name="behavior_skipCollapsed">false</item>-->
+
+        <!--        <item name="android:windowAnimationStyle">@style/dialog_anim</item>-->
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
+    <style name="MyPasswordStyle">
+        <item name="android:maxLength">10</item>
+        <item name="android:maxLines">1</item>
+    </style>
+</resources>
