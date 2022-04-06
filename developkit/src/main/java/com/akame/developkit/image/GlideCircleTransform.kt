@@ -1,5 +1,6 @@
 package com.akame.developkit.image
 
+import android.content.Context
 import android.content.res.Resources
 import android.graphics.*
 import com.akame.developkit.util.ScreenUtil
@@ -8,15 +9,12 @@ import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 import java.security.MessageDigest
 import kotlin.math.min
 
-/**
- * @Author: Restring
- * @Date: 2018/8/13
- * @Description: 圆角边框实现
- */
 class GlideCircleTransform(
-    borderWidth: Int = 4,
-    borderColor: Int = Color.BLACK,
-    private val round: Int = 20
+    private val context: Context,
+    borderWidth: Int,
+    borderColor: Int,
+    private val round: Int,
+    private var borderColors: IntArray
 ) : BitmapTransformation() {
     private val mBorderPaint: Paint?
     private val mBorderWidth: Float = Resources.getSystem().displayMetrics.density * borderWidth
@@ -25,19 +23,17 @@ class GlideCircleTransform(
         mBorderPaint = Paint()
         mBorderPaint.isDither = true
         mBorderPaint.isAntiAlias = true
-        mBorderPaint.color = borderColor
+        mBorderPaint.color = if (borderColor == -1) Color.BLACK else borderColor
         mBorderPaint.style = Paint.Style.STROKE
-        mBorderPaint.strokeWidth = mBorderWidth
+        mBorderPaint.strokeWidth = if (borderWidth == -1) 4f else borderWidth.toFloat()
     }
 
     override fun transform(
-        pool: BitmapPool,
-        toTransform: Bitmap,
-        outWidth: Int,
-        outHeight: Int
+        pool: BitmapPool, toTransform: Bitmap,
+        outWidth: Int, outHeight: Int
     ): Bitmap? {
-        return if (round != 0)
-            filletCrop(pool, toTransform)
+        return if (round > 0)
+            filletCrop(context, pool, toTransform)
         else
             circleCrop(pool, toTransform)
     }
@@ -57,16 +53,23 @@ class GlideCircleTransform(
         val r = size / 2f
         canvas.drawCircle(r, r, r, paint)
         if (mBorderPaint != null) {
+            if (borderColors.isNotEmpty() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                val sw = SweepGradient(
+                    r, r, borderColors,
+                    null
+                )
+                mBorderPaint.shader = sw
+            }
             val borderRadius = r - mBorderWidth / 2
             canvas.drawCircle(r, r, borderRadius, mBorderPaint)
         }
         return result
     }
 
-    private fun filletCrop(pool: BitmapPool, source: Bitmap?): Bitmap? {
+    private fun filletCrop(context: Context, pool: BitmapPool, source: Bitmap?): Bitmap? {
         if (source == null) return null
-        val w = min(source.width, ScreenUtil.getScreenWidth())
-        val h = min(source.height, ScreenUtil.getScreenHeight())
+        val w = min(source.width, ScreenUtil.getScreenWidth(context))
+        val h = min(source.height, ScreenUtil.getScreenHeight(context))
         val width = (w - mBorderWidth).toInt()
         val height = (h - mBorderWidth).toInt()
         val squared = Bitmap.createBitmap(source, 0, 0, width, height)
@@ -78,17 +81,21 @@ class GlideCircleTransform(
         paint.isAntiAlias = true
         canvas.drawRoundRect(
             RectF(mBorderWidth, mBorderWidth, width.toFloat(), height.toFloat()),
-            round.toFloat(),
-            round.toFloat(),
-            paint
+            round.toFloat(), round.toFloat(), paint
         )
         if (mBorderPaint != null) {
+            if (borderColors.isNotEmpty() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                val r = min(w, h) / 2f
+                val sw = SweepGradient(
+                    r, r, borderColors,
+                    null
+                )
+                mBorderPaint.shader = sw
+            }
             canvas.drawRoundRect(
                 RectF(
-                    mBorderWidth,
-                    mBorderWidth,
-                    width.toFloat(),
-                    height.toFloat()
+                    mBorderWidth, mBorderWidth,
+                    width.toFloat(), height.toFloat()
                 ), round.toFloat(), round.toFloat(), mBorderPaint
             )
         }

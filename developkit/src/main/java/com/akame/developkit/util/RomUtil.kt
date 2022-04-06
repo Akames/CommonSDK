@@ -8,14 +8,7 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 
-/**
- * @Author: Administrator
- * @Date: 2018/11/2
- * @Description:
- */
 object RomUtil {
-    private val TAG = "Rom"
-
     private const val ROM_MIUI = "MIUI"
     private const val ROM_EMUI = "EMUI"
     private const val ROM_FLYME = "FLYME"
@@ -105,7 +98,8 @@ object RomUtil {
             line = input.readLine()
             input.close()
         } catch (ex: IOException) {
-            Log.e(TAG, "Unable to read prop $name", ex)
+            ex.printStackTrace()
+            LogUtil.e("Unable to read prop $name")
             return null
         } finally {
             if (input != null) {

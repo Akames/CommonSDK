@@ -5,30 +5,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.akame.developkit.util.ViewStatusManger
-import kotlinx.coroutines.*
-import org.greenrobot.eventbus.EventBus
-import retrofit2.HttpException
+import androidx.viewbinding.ViewBinding
+import com.akame.developkit.viewstatus.IViewStatus
+import com.akame.developkit.viewstatus.ViewStatusManger
+import java.lang.reflect.ParameterizedType
 
-abstract class BaseLibFragment : Fragment(), CoroutineScope by MainScope() {
+abstract class BaseLibFragment<VB : ViewBinding> : Fragment(), IBaseView, IViewStatus {
     private var statueLayout: ViewStatusManger? = null
-    protected var mContentView: View? = null
-    protected var isLoadData = false
-    private var isRegisterEventBus = false //当前页面是否注册了EventBus
+    private var isLoadData = false
+
+    protected lateinit var binding: VB
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        if (mContentView == null && !isBinding()) {
-            mContentView = inflater.inflate(getLayoutResourceId(), container, false)
-        }
-        return mContentView
+        initBinding(container)
+        return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        init()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initData()
         initListener()
     }
 
@@ -37,77 +36,54 @@ abstract class BaseLibFragment : Fragment(), CoroutineScope by MainScope() {
         if (!isLoadData) {
             isLoadData = true
             lazyData()
+            subscribeUI()
         }
     }
 
-    abstract fun getLayoutResourceId(): Int
-
-    abstract fun init()
-
     abstract fun lazyData()
 
-    open fun initListener() {}
-
-    open fun isBinding() = false
-
-    abstract fun getErrorViewId(): Int
-    abstract fun getEmptyViewId(): Int
-    abstract fun getLoadingViewId(): Int
-
-    fun initViewStatusManage(
-        statueView: View,
-        emptyId: Int = getEmptyViewId(),
-        errorId: Int = getErrorViewId(),
-        loadingId: Int = getLoadingViewId(),
-        errorViewBuilder: ViewStatusManger.ErrorViewBuilder? = null,
-        emptyViewBuilder: ViewStatusManger.EmptyViewBuilder? = null
+    override fun initViewStatusManage(
+        defaultView: View,
+        emptyId: Int,
+        errorId: Int,
+        loadingId: Int,
+        errorViewBuilder: ViewStatusManger.ErrorViewBuilder?,
+        emptyViewBuilder: ViewStatusManger.EmptyViewBuilder?
     ) {
         statueLayout = ViewStatusManger.Builder()
-            .context(context!!)
-            .defaultView(statueView)
+            .context(requireContext())
+            .defaultView(defaultView)
             .loadingViewId(loadingId)
             .errorViewId(errorId, errorViewBuilder)
             .emptyViewId(emptyId, emptyViewBuilder)
             .builder()
     }
 
-    fun showDefaultView() {
+    override fun showDefaultView() {
         statueLayout?.showDefaultView()
     }
 
-    fun showErrorView() {
+    override fun showErrorView() {
         statueLayout?.showErrorView()
     }
 
-    fun showEmptyView() {
+    override fun showEmptyView() {
         statueLayout?.showEmptyView()
     }
 
-    fun showLoadingView() {
+    override fun showLoadingView() {
         statueLayout?.showLoadingView()
     }
 
-    /**
-     * 显示加载中提示框
-     */
-    abstract fun showLoadingDialog()
-
-    /**
-     * 关闭加载中提示框
-     */
-    abstract fun dismissLoadingDialog()
-
-    /**
-     * 注册EventBus
-     */
-    fun registerEventBus() {
-        EventBus.getDefault().register(this)
-        isRegisterEventBus = true
-    }
-
-    override fun onDestroy() {
-        if (isRegisterEventBus) EventBus.getDefault().unregister(this) //注销EventBus
-        cancel() //取消当前页面所有协程
-        super.onDestroy()
+    override fun initBinding(viewGroup: ViewGroup?) {
+        val type = javaClass.genericSuperclass
+        val clazz = (type as ParameterizedType).actualTypeArguments[0] as Class<VB>
+        val method = clazz.getMethod(
+            "inflate",
+            LayoutInflater::class.java,
+            ViewGroup::class.java,
+            Boolean::class.java
+        )
+        binding = method.invoke(null, layoutInflater, viewGroup, false) as VB
     }
 }

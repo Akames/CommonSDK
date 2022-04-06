@@ -1,63 +1,94 @@
 package com.akame.developkit.util
 
 import android.util.Log
-import com.akame.developkit.BuildConfig
 import org.json.JSONArray
 import org.json.JSONObject
+import java.lang.reflect.Method
 
 object LogUtil {
-    fun showLog(msg: String) {
-        if (BuildConfig.DEBUG) {
-            val stackTrace = Thread.currentThread().stackTrace
-            val index = 5
-            val className = stackTrace[index].fileName
-            val methodName = stackTrace[index].methodName
-            val lineNun = stackTrace[index].lineNumber
-            Log.d(className, "[(${className}:${lineNun}#${methodName})]: $msg")
+
+    fun d(msg: String) {
+        log(PRIORITY.DEBUG, msg)
+    }
+
+    fun i(msg: String) {
+        log(PRIORITY.INFO, msg)
+    }
+
+    fun w(msg: String) {
+        log(PRIORITY.WARN, msg)
+    }
+
+    fun e(msg: String) {
+        log(PRIORITY.ERROR, msg)
+    }
+
+    private fun log(priority: PRIORITY, msg: String) {
+        val stackTrace = Thread.currentThread().stackTrace
+        val index = 4
+        val className = stackTrace[index].fileName
+        val methodName = stackTrace[index].methodName
+        val lineNun = stackTrace[index].lineNumber
+        val methodInfo = "[(${className}:${lineNun})#${methodName}]"
+        try {
+            printLog(priority, className, "╔═══════════════════════════════════════════════════════════════════════════════════════")
+            print(priority, className, "ThreadName：${Thread.currentThread().name}")
+            print(priority, className, "invoke: $methodInfo")
+            print(priority, className, "${print(priority, className, msg)}")
+            printLog(priority, className, "╚═══════════════════════════════════════════════════════════════════════════════════════")
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
+    private fun print(priority: PRIORITY, className: String, msg: String) {
+        val lines = msg.split("\n")
+        lines.forEach {
+            if (isJson(it)) {
+                printJson(priority, className, it)
+            } else {
+                printLog(priority, className, "║ $it")
+            }
+        }
+    }
 
-    fun showJson(msg: String) {
-        val stackTrace = Thread.currentThread().stackTrace
-        val index = 5
-        val className = stackTrace[index].fileName
-        var message = ""
-        message = when {
-            msg.startsWith("{") -> {
-                val jsonObject = JSONObject(msg)
+    private fun isJson(json: String) = json.startsWith("{") || json.startsWith("[")
+
+    private fun printJson(priority: PRIORITY, className: String, json: String) {
+        val jsonFlit = when {
+            json.startsWith("{") -> {
+                val jsonObject = JSONObject(json)
                 jsonObject.toString(4)
             }
-            msg.startsWith("[") -> {
-                val jsonArray = JSONArray(msg)
+            json.startsWith("[") -> {
+                val jsonArray = JSONArray(json)
                 jsonArray.toString(4)
             }
             else -> {
-                msg
+                printLog(priority, className, "║ $json")
+                return
             }
         }
-
-        printLine(className, true)
-        message = System.getProperty("line.separator") + message
+        val message = System.getProperty("line.separator") + jsonFlit
         val toTypedArray = message.split(System.getProperty("line.separator")).toTypedArray()
         for (line in toTypedArray) {
-            Log.d(className, "║ $line")
+            printLog(priority, className, "║ $line")
         }
-        printLine(className, false)
     }
 
-
-    private fun printLine(tag: String?, isTop: Boolean) {
-        if (isTop) {
-            Log.d(
-                tag,
-                "╔═══════════════════════════════════════════════════════════════════════════════════════"
-            )
-        } else {
-            Log.d(
-                tag,
-                "╚═══════════════════════════════════════════════════════════════════════════════════════"
-            )
+    private fun printLog(priority: PRIORITY, tag: String, logMsg: String) {
+        when (priority) {
+            PRIORITY.DEBUG -> Log.d(tag, logMsg)
+            PRIORITY.INFO -> Log.i(tag, logMsg)
+            PRIORITY.WARN -> Log.w(tag, logMsg)
+            PRIORITY.ERROR -> Log.e(tag, logMsg)
         }
+    }
+
+    enum class PRIORITY {
+        DEBUG,
+        INFO,
+        WARN,
+        ERROR
     }
 }

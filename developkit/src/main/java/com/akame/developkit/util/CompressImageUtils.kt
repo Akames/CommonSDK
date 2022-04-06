@@ -2,7 +2,6 @@ package com.akame.developkit.util
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import com.akame.developkit.showLog
 import java.io.ByteArrayOutputStream
 import java.io.File

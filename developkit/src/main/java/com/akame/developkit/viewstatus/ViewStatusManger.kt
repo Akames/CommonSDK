@@ -1,28 +1,20 @@
-package com.akame.developkit.util
+package com.akame.developkit.viewstatus
 
 import android.content.Context
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewParent
 
 class ViewStatusManger(private var builder: Builder) {
-    private var parentLayout: ViewGroup
-    private var defaultParams: ViewGroup.LayoutParams?
+    private var parentLayout = builder.defaultView.parent as ViewGroup
+    private var defaultParams = builder.defaultView.layoutParams
 
     private var defaultIndex: Int = 0
 
     private var currentView: View
 
     init {
-        defaultParams = builder.defaultView.layoutParams
-        parentLayout = if (defaultParams == null) {
-            builder.defaultView.rootView.findViewById(android.R.id.content)
-        } else {
-            builder.defaultView.parent as ViewGroup
-        }
-
         for (i in 0..parentLayout.childCount) {
             if (parentLayout.getChildAt(i).id == builder.defaultView.id) {
                 defaultIndex = i

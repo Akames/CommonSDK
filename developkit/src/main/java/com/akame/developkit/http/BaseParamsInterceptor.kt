@@ -1,4 +1,4 @@
-package com.akame.developkit.net
+package com.akame.developkit.http
 
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
@@ -12,7 +12,6 @@ abstract class BaseParamsInterceptor : Interceptor {
         request = addParams(request)
         return chain.proceed(request)
     }
-
 
     private fun addParams(request: Request): Request {
         val builder = request.url.newBuilder()

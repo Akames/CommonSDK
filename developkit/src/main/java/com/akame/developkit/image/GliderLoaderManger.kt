@@ -4,13 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.util.Log
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import com.akame.developkit.showLog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.GlideException
@@ -23,54 +20,62 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import jp.wasabeef.glide.transformations.BlurTransformation
 import jp.wasabeef.glide.transformations.RoundedCornersTransformation
+import javax.sql.DataSource
 
 class GliderLoaderManger : ILoader {
-    override fun displayImage(
-        options: ImageOptions,
-        imageView: ImageView,
-        imageCallBack: ImageCallBack?
-    ) {
-        val rm: RequestManager = when (val context = options.getContext()) {
+    override fun displayImage(options: ImageOptions) {
+        if (options.context == null) {
+            throw Throwable("context参数不能为null")
+        }
+
+        if (options.imageView == null) {
+            throw Throwable("imageView参数不能为null")
+        }
+
+        val rm: RequestManager = when (val context = options.context) {
+
             is Activity -> Glide.with(context)
 
             is Fragment -> Glide.with(context)
 
-            else -> Glide.with(context as Context)
+            is Context -> Glide.with(context)
+
+            else -> throw Throwable("context参数不合法")
         }
 
-        var apply = rm.load(options.getImagePath())
-            .apply(configOptions(options, imageView.context))
+        var apply = rm.load(options.imagePath)
+            .apply(configOptions(options))
 
-        if (imageCallBack != null) {
-            apply = apply
-                .addListener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(
-                        e: GlideException?,
-                        model: Any?,
-                        target: Target<Drawable>?,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        imageCallBack.error()
-                        return false
-                    }
+        options.imageCallBack?.also {
+            apply = apply.addListener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    it.error()
+                    return false
+                }
 
-                    override fun onResourceReady(
-                        resource: Drawable?,
-                        model: Any?,
-                        target: Target<Drawable>?,
-                        dataSource: DataSource?,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        imageCallBack.success()
-                        return false
-                    }
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    dataSource: com.bumptech.glide.load.DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    it.success(resource)
+                    return false
+                }
 
-                })
+            })
         }
+
 
         //是否等比例加载
-        if (options.isConstrain()) {
-            apply.into(object : CustomViewTarget<ImageView, Drawable>(imageView) {
+        if (options.isConstrain) {
+            apply.into(object : CustomViewTarget<ImageView, Drawable>(options.imageView!!) {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
 
                 }
@@ -84,58 +89,58 @@ class GliderLoaderManger : ILoader {
                 ) {
                     val width = resource.intrinsicWidth.toFloat()
                     val height = resource.intrinsicHeight.toFloat()
-                    var ivWidth = imageView.width.toFloat()
+                    var ivWidth = options.imageView!!.width.toFloat()
                     if (ivWidth == 0f) {
-                        ivWidth = imageView.resources.displayMetrics.widthPixels.toFloat()
+                        ivWidth = options.imageView!!.resources.displayMetrics.widthPixels.toFloat()
                     }
                     val ivHeight = (height / width * ivWidth).toInt()
-                    val lp = imageView.layoutParams
+                    val lp = options.imageView!!.layoutParams
                     lp.height = ivHeight
-                    imageView.layoutParams = lp
-                    imageView.setImageDrawable(resource)
+                    options.imageView!!.layoutParams = lp
+                    options.imageView!!.setImageDrawable(resource)
                 }
             })
         } else {
-            apply.into(imageView)
+            apply.into(options.imageView!!)
         }
     }
 
 
-    private fun configOptions(op: ImageOptions, context: Context): RequestOptions {
+    private fun configOptions(op: ImageOptions): RequestOptions {
         var options = RequestOptions()
         val transList = ArrayList<Transformation<Bitmap>>()
 
-        if (op.isCenterCrop()) {
+        if (op.isCenterCrop) {
             transList.add(CenterCrop())
         }
 
-        if (op.isCircleCrop()) {
+        if (op.isCircleCrop) {
             transList.add(CircleCrop())
         }
 
         //添加圆角
-        if (op.getRound() != null && op.getRoundType() != null) {
+        if (op.round != -1) {
             transList.add(
                 RoundedCornersTransformation(
-                    op.getRound()!!,
-                    0,
-                    getImageRoundType(op.getRoundType()!!)
+                    op.round, 0, getImageRoundType(op.roundType)
                 )
             )
         }
 
         //高斯模糊
-        if (op.getBlur() != null) {
-            transList.add(BlurTransformation(op.getBlur()!!, op.getEnlarge()))
+        if (op.gsBlur != -1) {
+            transList.add(BlurTransformation(op.gsBlur, op.gsEnlarge))
         }
 
         //添加边框
-        if (op.getBorderWidth() != null && op.getBorderColor() != null) {
+        if (op.borderRound != -1 && op.borderWidth != -1) {
             transList.add(
                 GlideCircleTransform(
-                    op.getBorderWidth()!!,
-                    op.getBorderColor()!!,
-                    op.getBorderRound()
+                    op.context as Context,
+                    op.borderWidth,
+                    op.borderColor,
+                    op.borderRound,
+                    op.borderColors
                 )
             )
         }
@@ -144,12 +149,12 @@ class GliderLoaderManger : ILoader {
             options = RequestOptions.bitmapTransform(MultiTransformation(transList))
         }
 
-        if (op.getPlaceholderRes() != null) {
-            options = options.placeholder(op.getPlaceholderRes()!!)
+        if (op.placeholderRes != -1) {
+            options = options.placeholder(op.placeholderRes)
         }
 
-        if (op.getErrorRes() != null) {
-            options = options.error(op.getErrorRes()!!)
+        if (op.errorRes != -1) {
+            options = options.error(op.errorRes)
         }
         return options
 

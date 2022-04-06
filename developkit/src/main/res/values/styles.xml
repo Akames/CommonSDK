@@ -14,39 +14,11 @@
         <item name="android:backgroundDimEnabled">true</item>
     </style>
 
-
-    <style name="dialog_style" parent="Theme.AppCompat.DayNight.Dialog">
-        <!--        <item name="android:windowEnterAnimation">@anim/enter_anim</item>-->
-        <item name="android:windowFrame">@null</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
+    <style name="BottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/bottomSheetStyleWrapper</item>
     </style>
 
-    <style name="dialog_anim" >
-<!--        <item name="android:windowEnterAnimation">@anim/enter_anim</item>-->
-<!--        <item name="android:windowExitAnimation">@anim/out_anim</item>-->
-
-<!--        <item name="android:activityOpenEnterAnimation">@anim/enter_anim</item>-->
-<!--        <item name="android:activityOpenExitAnimation">@null</item>-->
-<!--        <item name="android:activityCloseEnterAnimation">@null</item>-->
-<!--        <item name="android:activityCloseExitAnimation">@anim/out_anim</item>-->
-
-    </style>
-
-    <style name="TransparentBottomSheetStyle" parent="Theme.Design.BottomSheetDialog">
+    <style name="bottomSheetStyleWrapper" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:background">@android:color/transparent</item>
-        <!--<item name="behavior_peekHeight">auto</item>
-        <item name="behavior_hideable">true</item>
-        <item name="behavior_skipCollapsed">false</item>-->
-
-        <!--        <item name="android:windowAnimationStyle">@style/dialog_anim</item>-->
-        <item name="android:windowFrame">@null</item>
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:backgroundDimEnabled">false</item>
-    </style>
-
-    <style name="MyPasswordStyle">
-        <item name="android:maxLength">10</item>
-        <item name="android:maxLines">1</item>
     </style>
 </resources>

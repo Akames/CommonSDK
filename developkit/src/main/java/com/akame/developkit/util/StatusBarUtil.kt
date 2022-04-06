@@ -6,33 +6,23 @@ import android.os.Build
 import android.view.View
 import android.view.WindowManager
 
-
 object StatusBarUtil {
 
     /**
      * 状态栏透明 5.0以下的不做处理
      */
     fun transparentStatusBar(activity: Activity, toolBar: View?) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            val window = activity.window
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                //需要设置这个flag contentView才能延伸到状态栏
-//                window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-                //状态栏覆盖在contentView上面，设置透明使contentView的背景透出来
-                window.statusBarColor = Color.TRANSPARENT
-            } else {
-                window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            }
-
-            toolBar?.setPadding(
-                toolBar.paddingLeft,
-                toolBar.paddingTop + ScreenUtil.getStatusBarHeight(),
-                toolBar.paddingRight,
-                toolBar.paddingBottom
-            )
-        }
+        val window = activity.window
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        //状态栏覆盖在contentView上面，设置透明使contentView的背景透出来
+        window.statusBarColor = Color.TRANSPARENT
+        toolBar?.setPadding(
+            toolBar.paddingLeft,
+            toolBar.paddingTop + ScreenUtil.getStatusBarHeight(activity.applicationContext),
+            toolBar.paddingRight,
+            toolBar.paddingBottom
+        )
     }
 
     /**

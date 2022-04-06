@@ -1,36 +1,12 @@
 package com.akame.developkit.util
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Color
 import android.os.Build
 import android.view.WindowManager
 
 class NotchDisplayUtils {
-
-    fun adapterNotch(activity: Activity) {
-        if (hasNotchInScreen(activity)) {
-            //如果是刘海屏 直接适配
-            val lp = activity.window.attributes
-            //针对9.0适配
-            // oppo 中设置对于下面代码无效 只能走第二条路线
-            if (Build.VERSION.SDK_INT >= 28 && !RomUtil.isOppo) {
-                lp.layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
-            } else {
-                //第二种适配方案理论上适配所有，将背景设置为黑色，将布局向下摞动状态栏动高度，一般刘海的高度约等于状态栏的高度
-                val decorView = activity.window.decorView
-                decorView.setBackgroundColor(Color.BLACK)
-                decorView.setPadding(
-                    decorView.left,
-                    ScreenUtil.getStatusBarHeight(),
-                    decorView.paddingRight,
-                    decorView.paddingBottom
-                )
-            }
-            activity.window.attributes = lp
-        }
-    }
-
     /**
      * 判断是否有刘海屏
      */
@@ -43,7 +19,7 @@ class NotchDisplayUtils {
             }
         }
         when {
-            RomUtil.isMiui -> return hasNotchXiaoMi(activity)
+            RomUtil.isMiui -> return hasNotchMi(activity)
             RomUtil.isOppo -> return hasNotchOPPO(activity)
             RomUtil.isVivo -> return hasNotchVIVO(activity)
             RomUtil.isEmui -> return hasNotchHw(activity)
@@ -89,7 +65,8 @@ class NotchDisplayUtils {
      * @param activity
      * @return
      */
-    private fun hasNotchXiaoMi(activity: Activity): Boolean {
+    @SuppressLint("PrivateApi")
+    private fun hasNotchMi(activity: Activity): Boolean {
         return try {
             val c = Class.forName("android.os.SystemProperties")
             val get = c.getMethod("getInt", String::class.java, Int::class.javaPrimitiveType)
@@ -111,9 +88,9 @@ class NotchDisplayUtils {
     private fun hasNotchHw(activity: Activity): Boolean {
         return try {
             val cl = activity.classLoader
-            val HwNotchSizeUtil = cl.loadClass("com.huawei.android.util.HwNotchSizeUtil")
-            val get = HwNotchSizeUtil.getMethod("hasNotchInScreen")
-            get.invoke(HwNotchSizeUtil) as Boolean
+            val hwNotchSizeUtil = cl.loadClass("com.huawei.android.util.HwNotchSizeUtil")
+            val get = hwNotchSizeUtil.getMethod("hasNotchInScreen")
+            get.invoke(hwNotchSizeUtil) as Boolean
         } catch (e: Exception) {
             false
         }
