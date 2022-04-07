@@ -2,7 +2,9 @@ package com.akame.developkit.http
 
 import android.util.Log
 import androidx.lifecycle.liveData
+import com.akame.developkit.util.LogUtil
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.flow
 
 fun <T : BaseResponse> apiRequest(
     requestServer: suspend () -> T,
@@ -22,11 +24,10 @@ fun <T : BaseResponse> apiRequest(
     } catch (e: Exception) {
         val errorMsg = AnalyzeNetException.analyze(e)
         if (HttpConfig.printLogEnable)
-            Log.e("tag", e.message ?: errorMsg)
+            LogUtil.e(e.message ?: errorMsg)
         emit(SeverResult.Error(Exception(errorMsg)))
     }
 }
-
 
 suspend fun <T : BaseResponse> apiRequestNoResult(
     requestServer: suspend () -> T
@@ -69,7 +70,7 @@ fun <T : BaseResponse> apiRequest(
     } catch (e: Exception) {
         val errorMsg = AnalyzeNetException.analyze(e)
         if (HttpConfig.printLogEnable)
-            Log.e("tag", errorMsg)
+            LogUtil.e(errorMsg)
         fail?.invoke(e)
     } finally {
         complete?.invoke()

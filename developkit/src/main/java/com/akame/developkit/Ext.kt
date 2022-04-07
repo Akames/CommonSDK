@@ -31,10 +31,6 @@ fun showMsg(context: Context, msg: Any) {
     Toast.makeText(context, msg.toString(), Toast.LENGTH_SHORT).show()
 }
 
-fun showLog(msg: String) {
-    LogUtil.d(msg)
-}
-
 inline fun <reified T> Context.launchActivity(block: (Bundle.() -> Unit) = {}) {
     val bundle = Bundle()
     block.invoke(bundle)

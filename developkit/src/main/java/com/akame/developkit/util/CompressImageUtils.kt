@@ -2,7 +2,6 @@ package com.akame.developkit.util
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.akame.developkit.showLog
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -68,7 +67,8 @@ object CompressImageUtils {
             fos.close()
             baos.close()
         } catch (e: Exception) {
-            showLog("-----压缩异常---${e.message}--")
+            e.printStackTrace()
+            LogUtil.e(e.message?:"")
         } finally {
             if (!bitmap.isRecycled) {
                 bitmap.recycle()
